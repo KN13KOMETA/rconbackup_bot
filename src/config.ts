@@ -96,17 +96,14 @@ export const parseConfig = (): Config | ConfigError => {
     cfg.backup.serverDir = e;
   }
   {
-    const e = getEnvVar("BACKUP_PATH1");
+    const e = getEnvVar("BACKUP_PATHS");
     if (e instanceof Error) return e;
-  }
-  for (
-    let i = 1, e: string | ConfigError;
-    !((e = getEnvVar("BACKUP_PATH" + i)) instanceof Error);
-    i++
-  ) {
-    if (!existsSync(path.join(cfg.backup.serverDir, e)))
-      return ConfigError.invalidPath(e);
-    cfg.backup.backupPaths.push(e);
+    const ps = e.split(/\n/g);
+    for (const p of ps) {
+      if (!existsSync(path.join(cfg.backup.serverDir, p)))
+        return ConfigError.invalidPath(p);
+      cfg.backup.backupPaths.push(p);
+    }
   }
 
   return cfg;
