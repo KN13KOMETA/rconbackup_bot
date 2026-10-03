@@ -1,0 +1,113 @@
+import { existsSync } from "fs";
+import path from "path";
+
+export interface Config {
+  telegram: {
+    token: string;
+  };
+  rcon: {
+    addr: string;
+    port: number;
+    pswd: string;
+  };
+  backup: {
+    serverDir: string;
+    backupPaths: string[];
+    backupTime: Date;
+  };
+}
+
+class ConfigError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ConfigError";
+  }
+
+  static missingEnvVar(envName: string) {
+    return new ConfigError(`Enviroment variable "${envName}" is missing.
+Either add it in ".env" file or use any other method.`);
+  }
+
+  static invalidPort(port: number) {
+    return new ConfigError(`Port "${port}" is invalid.
+Expected range: 1024 - ${0xffff}.`);
+  }
+
+  static invalidPath(path: string) {
+    return new ConfigError(`Path "${path}" does not exists.`);
+  }
+}
+
+const getEnvVar = (envVarName: string): string | ConfigError => {
+  const e = process.env[envVarName];
+  if (e == null) return ConfigError.missingEnvVar(envVarName);
+  return e;
+};
+
+export const parseConfig = (): Config | ConfigError => {
+  const cfg: Config = {
+    telegram: { token: "" },
+    rcon: {
+      addr: "",
+      port: 0,
+      pswd: "",
+    },
+    backup: {
+      serverDir: "",
+      backupPaths: [],
+      backupTime: new Date(),
+    },
+  };
+
+  {
+    const e = getEnvVar("TELEGRAM_TOKEN");
+    if (e instanceof Error) return e;
+    cfg.telegram.token = e;
+  }
+
+  {
+    const e = getEnvVar("RCON_HOST");
+    if (e instanceof Error) return e;
+    cfg.rcon.addr = e;
+  }
+  {
+    const e = getEnvVar("RCON_PORT");
+    if (e instanceof Error) return e;
+    let n = Number(e);
+    if (isNaN(n) || n < 1024 || n > 0xffff) return ConfigError.invalidPort(n);
+    cfg.rcon.port = n;
+  }
+  {
+    const e = getEnvVar("RCON_PSWD");
+    if (e instanceof Error) return e;
+    cfg.rcon.addr = e;
+  }
+
+  {
+    const e = getEnvVar("BACKUP_TIME");
+    if (e instanceof Error) return e;
+    const t = new Date(`1970-01-01T${e}`);
+    cfg.backup.backupTime = t;
+  }
+  {
+    const e = getEnvVar("SERVER_DIR");
+    if (e instanceof Error) return e;
+    if (!existsSync(e)) return ConfigError.invalidPath(e);
+    cfg.backup.serverDir = e;
+  }
+  {
+    const e = getEnvVar("BACKUP_PATH1");
+    if (e instanceof Error) return e;
+  }
+  for (
+    let i = 1, e: string | ConfigError;
+    !((e = getEnvVar("BACKUP_PATH" + i)) instanceof Error);
+    i++
+  ) {
+    if (!existsSync(path.join(cfg.backup.serverDir, e)))
+      return ConfigError.invalidPath(e);
+    cfg.backup.backupPaths.push(e);
+  }
+
+  return cfg;
+};
