@@ -2,6 +2,7 @@
   "name": "rconbackup_bot",
   "version": "1.0.0-beta",
   "description": "",
+  "type": "module",
   "main": "src/index.ts",
   "scripts": {
     "start": "node --env-file=.env src/index.ts"
