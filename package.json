@@ -5,7 +5,7 @@
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
-    "start": "node --env-file=.env src/index.ts"
+    "start": "node --experimental-strip-types --env-file=.env src/index.ts"
   },
   "keywords": [],
   "author": "KOMETA",
