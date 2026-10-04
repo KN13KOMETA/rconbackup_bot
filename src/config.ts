@@ -88,7 +88,7 @@ export const parseConfig = (): Config | ConfigError => {
   {
     const e = getEnvVar("RCON_PSWD");
     if (e instanceof Error) return e;
-    cfg.rcon.addr = e;
+    cfg.rcon.pswd = e;
   }
 
   {
