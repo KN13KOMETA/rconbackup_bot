@@ -18,6 +18,7 @@ export interface Config {
     };
     paths: string[];
     time: Date;
+    mode: "DAILY" | "WEEKLY" | "MONTHLY";
   };
 }
 
@@ -58,6 +59,7 @@ export const parseConfig = (): Config | ConfigError => {
     },
     backup: {
       time: new Date(),
+      mode: "DAILY",
       cmds: {
         before: [],
         after: [],
@@ -96,6 +98,21 @@ export const parseConfig = (): Config | ConfigError => {
     if (e instanceof Error) return e;
     const t = new Date(`1970-01-01T${e}`);
     cfg.backup.time = t;
+  }
+  {
+    const e = getEnvVar("BACKUP_MODE");
+    if (e instanceof Error) return e;
+    switch (e) {
+      case "DAILY":
+      case "WEEKLY":
+      case "MONTHLY": {
+        cfg.backup.mode = e;
+        break;
+      }
+      default:
+        return new ConfigError(`BACKUP_MODE must be a value of DAILY or WEEKLY or MONTHLY.
+Current value is "${e}".`);
+    }
   }
   {
     const e = getEnvVar("CMDS_BEFORE_BACKUP");
