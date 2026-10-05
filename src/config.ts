@@ -16,8 +16,8 @@ export interface Config {
       before: string[];
       after: string[];
     };
-    backupPaths: string[];
-    backupTime: Date;
+    paths: string[];
+    time: Date;
   };
 }
 
@@ -57,13 +57,13 @@ export const parseConfig = (): Config | ConfigError => {
       pswd: "",
     },
     backup: {
-      backupTime: new Date(),
+      time: new Date(),
       cmds: {
         before: [],
         after: [],
       },
       serverDir: "",
-      backupPaths: [],
+      paths: [],
     },
   };
 
@@ -95,7 +95,7 @@ export const parseConfig = (): Config | ConfigError => {
     const e = getEnvVar("BACKUP_TIME");
     if (e instanceof Error) return e;
     const t = new Date(`1970-01-01T${e}`);
-    cfg.backup.backupTime = t;
+    cfg.backup.time = t;
   }
   {
     const e = getEnvVar("CMDS_BEFORE_BACKUP");
@@ -122,7 +122,7 @@ export const parseConfig = (): Config | ConfigError => {
     for (const p of ps) {
       if (!existsSync(path.join(cfg.backup.serverDir, p)))
         return ConfigError.invalidPath(p);
-      cfg.backup.backupPaths.push(p);
+      cfg.backup.paths.push(p);
     }
   }
 
