@@ -18,6 +18,7 @@ export interface Config {
     };
     paths: string[];
     time: Date;
+    timezoneMs: number;
     mode: "DAILY" | "WEEKLY" | "MONTHLY";
   };
 }
@@ -59,6 +60,7 @@ export const parseConfig = (): Config | ConfigError => {
     },
     backup: {
       time: new Date(),
+      timezoneMs: 0,
       mode: "DAILY",
       cmds: {
         before: [],
@@ -98,6 +100,11 @@ export const parseConfig = (): Config | ConfigError => {
     if (e instanceof Error) return e;
     const t = new Date(`1970-01-01T${e}`);
     cfg.backup.time = t;
+
+    const [tzHours, tzMinutes] = e.split(/[-+]/)[1].split(":");
+    cfg.backup.timezoneMs =
+      (Number(tzHours) * 60 + Number(tzMinutes)) * 60 * 1000;
+    cfg.backup.timezoneMs *= e.indexOf("+") == -1 ? -1 : 1;
   }
   {
     const e = getEnvVar("BACKUP_MODE");
