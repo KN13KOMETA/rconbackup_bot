@@ -21,6 +21,7 @@ export interface Config {
       after: string[];
     };
     paths: string[];
+    chunkSize: number;
     time: Date;
     timezoneMs: number;
     mode: "DAILY" | "WEEKLY" | "MONTHLY";
@@ -179,6 +180,13 @@ Current value is "${e}".`);
         return ConfigError.invalidPath(p);
       cfg.backup.paths.push(p);
     }
+  }
+  {
+    const e = getEnvVar("BACKUP_CHUNK_SIZE");
+    if (e instanceof Error) return e;
+    let n = Number(e);
+    if (isNaN(n)) return new ConfigError(`${e} is not valid number`);
+    cfg.backup.chunkSize = n;
   }
 
   return cfg;

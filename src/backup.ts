@@ -1,9 +1,9 @@
 import path from "path";
 import { Config } from "./config.ts";
-import { existsSync, mkdirSync, rmSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "fs";
 import { execSync } from "child_process";
 
-export const backup = async (config: Config): Promise<string> => {
+export const backup = async (config: Config): Promise<string[]> => {
   const rootDir = path.join(import.meta.dirname, "..");
   const tmpDir = path.join(rootDir, "tmp");
   const filelistPath = path.join(tmpDir, "filelist.txt");
@@ -32,11 +32,18 @@ export const backup = async (config: Config): Promise<string> => {
     "-mqs=on",
     "-mmf=HC4",
     "-mmc=1",
+    `-v${config.backup.chunkSize}m`,
   ];
 
   execSync(`7z a -t7z ${args7z.join(" ")} "${archivePath}" @${filelistPath}`);
 
-  console.log(`Archive created "${archivePath}"`);
+  const archiveParts = readdirSync(tmpDir).filter((v) =>
+    v.includes(path.basename(archivePath)),
+  );
 
-  return archivePath;
+  console.log(
+    `Archive created "${archivePath} with ${archiveParts.length} volumes"`,
+  );
+
+  return archiveParts;
 };
