@@ -3,7 +3,7 @@ import { Config } from "./config.ts";
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "fs";
 import { execSync } from "child_process";
 
-export const backup = async (config: Config) => {
+export const backup = async (config: Config): Promise<string> => {
   const rootDir = path.join(import.meta.dirname, "..");
   const tmpDir = path.join(rootDir, "tmp");
   const filelistPath = path.join(tmpDir, "filelist.txt");
@@ -37,4 +37,6 @@ export const backup = async (config: Config) => {
   execSync(`7z a -t7z ${args7z.join(" ")} "${archivePath}" @${filelistPath}`);
 
   console.log(`Archive created "${archivePath}"`);
+
+  return archivePath;
 };
