@@ -1,9 +1,13 @@
-import { existsSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import path from "path";
 
 export interface Config {
+  cache: {
+    telegramUsersPath: string;
+  };
   telegram: {
     token: string;
+    users: Set<number>;
   };
   rcon: {
     addr: string;
@@ -51,8 +55,12 @@ const getEnvVar = (envVarName: string): string | ConfigError => {
 };
 
 export const parseConfig = (): Config | ConfigError => {
+  const cacheDir = path.join(import.meta.dirname, "..", "cache");
   const cfg: Config = {
-    telegram: { token: "" },
+    cache: {
+      telegramUsersPath: path.join(cacheDir, "telegram-users.cache.txt"),
+    },
+    telegram: { token: "", users: new Set() },
     rcon: {
       addr: "",
       port: 0,
@@ -71,10 +79,33 @@ export const parseConfig = (): Config | ConfigError => {
     },
   };
 
+  if (!existsSync(cacheDir)) mkdirSync(cacheDir, { recursive: true });
+  if (!existsSync(cfg.cache.telegramUsersPath))
+    writeFileSync(cfg.cache.telegramUsersPath, "", "utf8");
+
   {
     const e = getEnvVar("TELEGRAM_TOKEN");
     if (e instanceof Error) return e;
     cfg.telegram.token = e;
+  }
+
+  /**
+   * Long ahh explanation
+   * Bot sends backup to every user he knows
+   * So every admin sends /start to bot
+   * It adds id to list and writes a file
+   * So you don't need to write again after restart
+   * That's the reason you should restrict access to bot
+   */
+  if (existsSync(cfg.cache.telegramUsersPath)) {
+    const usersCacheContent = readFileSync(cfg.cache.telegramUsersPath, "utf8");
+    cfg.telegram.users = new Set(
+      usersCacheContent
+        .trim()
+        .split(/\n/g)
+        .map((v) => parseInt(v))
+        .filter(Number.isInteger),
+    );
   }
 
   {
