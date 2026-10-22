@@ -37,9 +37,9 @@ export const backup = async (config: Config): Promise<string[]> => {
 
   execSync(`7z a -t7z ${args7z.join(" ")} "${archivePath}" @${filelistPath}`);
 
-  const archiveParts = readdirSync(tmpDir).filter((v) =>
-    v.includes(path.basename(archivePath)),
-  );
+  const archiveParts = readdirSync(tmpDir)
+    .filter((v) => v.includes(path.basename(archivePath)))
+    .map((v) => path.join(tmpDir, v));
 
   console.log(
     `Archive created "${archivePath} with ${archiveParts.length} volumes"`,
