@@ -53,6 +53,11 @@ export class Telegram {
   }
 
   async start() {
+    if (this.config.telegram.localApi)
+      console.log(
+        `Telegram will use local bot api ${this.config.telegram.localApi}`,
+      );
+
     console.log("Telegram bot started");
     await this.#bot.start();
   }
