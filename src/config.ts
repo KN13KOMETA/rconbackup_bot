@@ -6,6 +6,7 @@ export interface Config {
     telegramUsersPath: string;
   };
   telegram: {
+    localApi: string | null;
     token: string;
     users: Set<number>;
   };
@@ -61,7 +62,7 @@ export const parseConfig = (): Config | ConfigError => {
     cache: {
       telegramUsersPath: path.join(cacheDir, "telegram-users.cache.txt"),
     },
-    telegram: { token: "", users: new Set() },
+    telegram: { localApi: null, token: "", users: new Set() },
     rcon: {
       addr: "",
       port: 0,
@@ -89,6 +90,11 @@ export const parseConfig = (): Config | ConfigError => {
     const e = getEnvVar("TELEGRAM_TOKEN");
     if (e instanceof Error) return e;
     cfg.telegram.token = e;
+  }
+  {
+    const e = getEnvVar("TELEGRAM_LOCAL_BOT_API_URL");
+    if (e instanceof Error) return e;
+    if (e != "DEFAULT") cfg.telegram.localApi = e;
   }
 
   /**

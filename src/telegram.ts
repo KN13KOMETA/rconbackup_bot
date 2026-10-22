@@ -10,7 +10,16 @@ export class Telegram {
 
   constructor(config: Config) {
     this.config = config;
-    const b = (this.#bot = new Bot(config.telegram.token));
+
+    if (config.telegram.localApi) {
+      this.#bot = new Bot(config.telegram.token, {
+        client: { apiRoot: config.telegram.localApi },
+      });
+    } else {
+      this.#bot = new Bot(config.telegram.token);
+    }
+
+    const b = this.#bot;
 
     b.command("start", async (ctx) => {
       if (ctx.from == null) {
