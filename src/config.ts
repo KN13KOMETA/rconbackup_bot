@@ -77,6 +77,7 @@ export const parseConfig = (): Config | ConfigError => {
       },
       serverDir: "",
       paths: [],
+      chunkSize: 0,
     },
   };
 
