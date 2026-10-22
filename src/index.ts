@@ -14,7 +14,7 @@ if (config instanceof Error) {
 const connection = new Connection(config);
 const telegram = new Telegram(config);
 const deferrer = new Deferrer(config, async () => {
-  connection.runBeforeBackupCmds();
+  await connection.runBeforeBackupCmds();
 
   const backupPaths = await backup(config);
 
