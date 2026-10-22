@@ -23,7 +23,7 @@ export const backup = async (config: Config): Promise<string[]> => {
   );
 
   const args7z = [
-    "-mx=3",
+    "-mx=1",
     "-m0=LZMA2",
     "-md=32m",
     "-mfb=32",
