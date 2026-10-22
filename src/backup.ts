@@ -23,15 +23,13 @@ export const backup = async (config: Config): Promise<string[]> => {
   );
 
   const args7z = [
-    "-mx=7",
+    "-mx=3",
     "-m0=LZMA2",
-    "-md=64m",
-    "-mfb=64",
-    "-ms=512m",
+    "-md=32m",
+    "-mfb=32",
+    "-ms=off",
     "-mmt=on",
     "-mqs=on",
-    "-mmf=HC4",
-    "-mmc=1",
     `-v${config.backup.chunkSize}m`,
   ];
 
