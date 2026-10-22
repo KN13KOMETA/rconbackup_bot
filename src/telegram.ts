@@ -2,6 +2,7 @@ import { Bot, InputFile } from "grammy";
 import { Config } from "./config.ts";
 import { EOL } from "os";
 import { appendFileSync, existsSync } from "fs";
+import path from "path";
 
 export class Telegram {
   config: Config;
@@ -49,28 +50,36 @@ export class Telegram {
 
   async #sendBackupFileToUser(
     id: number,
-    path?: string,
-    fileId?: string,
-  ): Promise<string> {
-    if ((path == null || !existsSync(path)) && fileId == null) {
-      console.log("Nothing to send, both path and fileId is invalid");
-      return "";
+    paths?: string[],
+    fileIds?: string[],
+  ): Promise<string[]> {
+    const fids = [];
+
+    if (paths == null && fileIds == null) {
+      console.log("Nothing to send, both paths and fileIds is invalid");
+      return [];
     }
 
-    if (fileId) {
-      const msg = await this.#bot.api.sendDocument(id, fileId);
+    if (fileIds) {
+      for (const fileId of fileIds) {
+        const msg = await this.#bot.api.sendDocument(id, fileId);
+        console.log(`Sent file ${fileId} to user @${msg.chat.username}`);
+      }
+      return fileIds;
+    }
+
+    for (const p of paths!) {
+      const msg = await this.#bot.api.sendDocument(id, new InputFile(p));
       console.log(
-        `Sent file to user @${msg.chat.username} with fileId ${fileId}`,
+        `Sent file ${path.basename(p)} to user @${msg.chat.username}`,
       );
-      return fileId;
+      fids.push(msg.document.file_id);
     }
 
-    const msg = await this.#bot.api.sendDocument(id, new InputFile(path!));
-    console.log(`Sent file to user @${msg.chat.username}`);
-    return msg.document.file_id;
+    return fids;
   }
 
-  async sendBackupFile(path: string) {
+  async sendBackupFile(paths: string[]) {
     const users = [...this.config.telegram.users];
 
     if (users.length == 0) {
@@ -78,9 +87,9 @@ export class Telegram {
       return;
     }
 
-    const fileId = await this.#sendBackupFileToUser(users[0], path);
+    const fileIds = await this.#sendBackupFileToUser(users[0], paths);
 
     for (let i = 1; i < users.length; i++)
-      await this.#sendBackupFileToUser(users[i], undefined, fileId);
+      await this.#sendBackupFileToUser(users[i], undefined, fileIds);
   }
 }
