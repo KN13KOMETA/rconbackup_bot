@@ -11,21 +11,24 @@ if (config instanceof Error) {
   process.exit(1);
 }
 
-const connection = new Connection(config);
 const telegram = new Telegram(config);
 const deferrer = new Deferrer(config, async () => {
+  const connection = new Connection(config);
+
+  await connection.start();
   await connection.runBeforeBackupCmds();
 
   const backupPaths = await backup(config);
 
-  connection.runAfterBackupCmds();
+  await connection.runAfterBackupCmds();
 
   telegram.sendBackupFile(backupPaths);
+
+  connection.stop();
 });
 
 console.log("NOTICE: Time written using timezone you specified in .env\n");
 
-connection.start();
 telegram.start();
 
 while (true) {
